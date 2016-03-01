@@ -1,0 +1,14 @@
+#!/usr/bin/stap
+
+probe udp.recvmsg {
+  printf("%s: UDP: Receiving message.Socket %d. Size %d\n", execname(), sock, size)
+}
+
+probe tcp.recvmsg {
+  printf("%s: TCP: Receiving message. Socket %d. Size %d\n", execname(), sock, size)
+}
+
+probe udp.sendmsg {
+  printf("%s: UDP: Receiving message. Socket %d. Size %d
+}
+ 

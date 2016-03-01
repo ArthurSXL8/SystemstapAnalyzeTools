@@ -1,0 +1,29 @@
+#!/usr/bin/stap
+
+global current_fault
+probe vm.pagefault {
+  if (write_access) {
+    type = "write"
+  } else {
+    type = "read.."
+  }
+
+  current_fault[tid()] = sprintf("%s: Page fault at %p on a %s", execname(), address, type)
+
+}
+
+probe vm.pagefault.return {
+  print(current_fault[tid()])
+  delete current_fault[tid()]
+  if (fault_type == 0) {
+    printf("Out of memory\n")
+  }  else if (fault_type == 1) {
+    printf("Sigbus\n")
+  } else if(fault_type == 2) {
+    printf("Non-blocking operation\n")
+  } else {
+    printf("Blocking operation\n")
+  }
+
+
+}
