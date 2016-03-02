@@ -1,7 +1,24 @@
 #!/usr/bin/stap
+# Description: record the basic info of the pid, including the protocols,the socket file descriptor
+# and the packet size.
+#
+# Usage: stap network.stp <pid>
+#
+
+global my_pid = $1;
+
+probe begin {
+  printf("The pid you want to inspect is: %d", my_pid);
+}
+
+probe end {
+  printf("End inspecting the pid: %d", my_pid);
+}
 
 probe udp.recvmsg {
-  printf("%s: UDP: Receiving message.Socket %d. Size %d\n", execname(), sock, size)
+  if (pid() == my_pid) {	
+    printf("%s: UDP: Receiving message.Socket %d. Size %d\n", execname(), sock, size);
+  }
 }
 
 probe tcp.recvmsg {
@@ -9,6 +26,23 @@ probe tcp.recvmsg {
 }
 
 probe udp.sendmsg {
-  printf("%s: UDP: Receiving message. Socket %d. Size %d
+  printf("%s: UDP: Receiving message. Flags %d. Size %d\n", execname(), $sk->sk_flags, size);
 }
+
+probe tcp.sendmsg {
+  printf("%s: TCP: Sending message.Flags %d. Size %d\n", execname(), $sk->sk_flags, size);
+}
+
+
+probe udp.disconnect {
+  printf("%s: UDP: Disconnected %d with flags %d\n", execname(), sock, flags);
+}
+
+probe tcp.disconnect {
+  printf("%s: TCP: Disconnected %d with flags %d\n", execname(), sock, flags);
+}
+
+
+
+
  

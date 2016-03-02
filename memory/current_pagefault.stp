@@ -16,14 +16,17 @@ probe vm.pagefault.return {
   print(current_fault[tid()])
   delete current_fault[tid()]
   if (fault_type == 0) {
-    printf("Out of memory\n")
+    printf("Out of memory! Pid: %d, execname: %s\n", pid(), execname());
   }  else if (fault_type == 1) {
-    printf("Sigbus\n")
+    printf("Bad memory access!\n")
   } else if(fault_type == 2) {
-    printf("Non-blocking operation\n")
+    printf("Minor fault!\n")
   } else {
-    printf("Blocking operation\n")
+    printf("Major fault!\n")
   }
+}
 
 
+probe vm.brk {
+  printf("The heap is resized! Pid: %d, execname: %s", pid(), execname());
 }

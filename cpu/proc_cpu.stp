@@ -1,0 +1,31 @@
+#!/usr/bin/stap
+# The first argument is the pid you want to inspect,
+# the second argument is the number of cpus in the system.
+global sample;
+global time;
+probe timer.profile {
+  sample[pid(), tid()] <<< cpu();
+}
+
+probe begin {
+  printf("the process is %d.\n", $1);	
+//  if ($1 == pid()) {	
+    time = gettimeofday_s();
+//  } else {
+//    printf("the pid: %d", pid());
+//  }
+}
+
+probe end {
+  foreach([p, t] in sample) {
+    if (p == $1) {	  
+      printf("process: %11d TID: %5d\ncpu\tsamples\n", p, t);
+      print (@hist_linear(sample[p, t], 0, $2, 1));
+    }
+  }
+  time = gettimeofday_s() - time;
+  printf("\nTotal...................: %5d secs.\n", time);
+}
+
+
+
