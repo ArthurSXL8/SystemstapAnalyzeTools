@@ -1,0 +1,16 @@
+#!/usr/bin/stap
+# Decription: monitor the memory allocated and released
+# Usage: stap allocate.stp <pid> <sample_ratio_seconds>
+# the <pid> is optional,then it will show all processes' info.
+global process, uprocess;
+probe begin {
+  printf("%20s %5s %5s %11s %3s\n", "Process", "PPID", "PID", )
+}
+
+probe kernel.function("sys_mmap2") {
+  process[execname(), ppid(), pid(), cpu()] += $len;
+}	
+
+probe kernel.function("sys_munmap") {
+  
+}
