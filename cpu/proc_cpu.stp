@@ -1,19 +1,15 @@
 #!/usr/bin/stap
 # The first argument is the pid you want to inspect,
-# the second argument is the number of cpus in the system.
+# the second argument is the number of cpus minus 1 in the system.
 global sample;
 global time;
 probe timer.profile {
-  sample[pid(), tid()] <<< cpu();
+  sample[pid(), tid()] <<< 1;
 }
 
 probe begin {
-  printf("the process is %d.\n", $1);	
-//  if ($1 == pid()) {	
-    time = gettimeofday_s();
-//  } else {
-//    printf("the pid: %d", pid());
-//  }
+  printf("the process is %s:%d.\n", execname(), $1);	
+  time = gettimeofday_s();
 }
 
 probe end {
