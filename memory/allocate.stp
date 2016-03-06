@@ -1,10 +1,11 @@
 #!/usr/bin/stap
 # Decription: monitor the memory allocated and released
-# Usage: stap allocate.stp <pid> <sample_ratio_seconds>
-# the <pid> is optional,then it will show all processes' info.
-global process, uprocess;
+# Usage: stap allocate.stp <sample_ratio_seconds> <pid>
+# the <pid> is optional. If it exists, then it will show all processes' info.
 
-probe kernel.function("sys_mmap2") {
+global process, uprocess;
+global interval;
+probe kernel.function("sys_mmap") {
   process[execname(), ppid(), pid(), cpu()] += $len;
 }	
 
@@ -13,10 +14,32 @@ probe kernel.function("sys_munmap") {
 }
 
 probe begin {
-  printf("the args count: %d", $#);	
-//  if (($# != 1) && ()) {
-    printf("Usage: stap allocate.stp <pid> <sample_ratio_seconds>\n");
+  printf("the args count: %d.Starting Run......\n", $#);	
+  if (($# != 1) && ($# != 2)) {
+    printf("Usage: stap allocate.stp <sample_ratio_seconds> [pid]\n");
     exit();
-//  }	  
-  printf("%20s %5s")
+  } 
+  printf("%20s %5s %5s %11s %3s\n", "Process", "PPID", "PID", "SZ(Kb)", "CPU");
+}
+
+# If it is not accurate enough for you, you can change it here.
+probe timer.s($1) {
+  foreach([exec+, pprocid, procid, cps] in process) {
+    sizeKB = process[exec, pprocid, procid, cps]/1024;
+    if ($# == 1) {
+      printf("%20s %5d %5d +%11d %3d \n", exec, pprocid, procid, sizeKB, cps);
+    } else {
+      if (pid() == $2) {
+        printf("%20s %5d %5d +%11d %3d \n", exec, pprocid, procid, sizeKB, cps);
+      }
+    }
+  }
+  
+  foreach([exec+, pprocid, procid, cps] in uprocess) {
+    sizeKB = uprocess[exec, pprocid, procid, cps]/1024;
+    printf("%20s %5d %5d -%11d %3d \n", exec, pprocid, procid, sizeKB, cps);
+  }
+
+  delete process;
+  delete uprocess;
 }

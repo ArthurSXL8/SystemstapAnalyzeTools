@@ -1,0 +1,3 @@
+#!/usr/bin/stap
+# implement the command 'iostat' generally.
+# usage: 

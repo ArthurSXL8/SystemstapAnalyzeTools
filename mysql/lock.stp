@@ -1,0 +1,5 @@
+#!/usr/bin/stap
+
+probe begin {
+  printf("Start Running......\n");
+}
